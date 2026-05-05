@@ -111,6 +111,52 @@ benchmarks:
     - {name: eclipse_large, bm_name: eclipse, size: large}
 ```
 
+## `Renaissance` (preview ⚠️)
+[Renaissance benchmark suite](https://renaissance.dev/).
+
+### Keys
+`path`: path to the Renaissance `jar`.
+The value is required.
+Environment variables will be expanded.
+
+`timing_iteration`: number of repetitions, passed to Renaissance as `-r`.
+The value is required and must be an integer.
+
+`minheap`: a string that selects one of the `minheap_values` sets to use.
+
+`minheap_values`: a dictionary containing multiple named sets of minimal heap sizes that is enough for a benchmark from the suite to run without triggering `OutOfMemoryError`.
+Each size is measured in MiB.
+The default value is an empty dictionary.
+The minheap values are used only when running `runbms` with a valid `N` value.
+If the minheap value for a benchmark is not specified, a default of `4096` is used.
+
+`timeout`: timeout for one invocation of a benchmark in seconds.
+The default value is `null`.
+
+`plugins`: a list of [Renaissance plugins](https://renaissance.dev/docs) to load on the harness command line.
+The default value is an empty list.
+Each list entry is a dictionary with the following keys:
+- `path` (required): path to the plugin `jar`. To pass multiple jars, join them with `:`. Environment variables are expanded.
+- `class` (optional): the fully-qualified class implementing the plugin. When set, it is appended to `path` with `!` as expected by the harness.
+- `args` (optional): a list of strings; each value is appended to the harness command line as a separate `--with-arg <value>` after the corresponding `--plugin`.
+
+The plugins are emitted on the command line in the order listed.
+Per the Renaissance docs, plugins specified earlier wrap plugins specified later for paired events, so order matters.
+
+An example looks like this.
+```yaml
+plugins:
+  - path: /path/to/probes.jar
+    class: probe.RenaissancePlugin
+  - path: /path/to/another-plugin.jar
+    args:
+      - "--foo"
+      - "bar"
+```
+
+### Benchmark Specification
+Only strings are allowed, which should correspond to a benchmark name or group recognized by the Renaissance harness.
+
 ## `SPECjbb2015` (preview ⚠️)
 [SPECjbb2015](https://www.spec.org/jbb2015/).
 

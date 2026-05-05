@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from running.benchmark import (
     JavaBenchmark,
     BinaryBenchmark,
@@ -277,6 +277,125 @@ class DaCapo(JavaBenchmarkSuite):
                 "or a dictionary (different companions for"
                 "differerent benchmarks)".format(self.name)
             )
+
+
+@register(BenchmarkSuite)
+class Renaissance(JavaBenchmarkSuite):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.path: Path
+        self.path = Path(os.path.expandvars(kwargs["path"]))
+        if not self.path.exists():
+            logging.warning("Renaissance jar {} not found".format(self.path))
+        self.minheap: Optional[str]
+        self.minheap = kwargs.get("minheap")
+        self.minheap_values: Dict[str, Dict[str, int]]
+        self.minheap_values = kwargs.get("minheap_values", {})
+        if not isinstance(self.minheap_values, dict):
+            raise TypeError(
+                "The minheap_values of {} should be a dictionary".format(self.name)
+            )
+        if self.minheap:
+            if not isinstance(self.minheap, str):
+                raise TypeError(
+                    "The minheap of {} should be a string that selects from a minheap_values".format(
+                        self.name
+                    )
+                )
+            if self.minheap not in self.minheap_values:
+                raise KeyError(
+                    "{} is not a valid entry of {}.minheap_values".format(
+                        self.name, self.name
+                    )
+                )
+        self.timing_iteration: int | None = None
+        if "timing_iteration" in kwargs:
+            timing_iteration = parse_timing_iteration(
+                kwargs.get("timing_iteration"), "Renaissance"
+            )
+            if isinstance(timing_iteration, str):
+                raise TypeError("timing_iteration for Renaissance has to be an integer")
+            else:
+                self.timing_iteration = timing_iteration
+        self.timeout: Optional[int]
+        self.timeout = kwargs.get("timeout")
+        self.plugins: List[Dict[str, Any]]
+        self.plugins = self._parse_plugins(kwargs.get("plugins", []))
+
+    def _parse_plugins(self, raw: Any) -> List[Dict[str, Any]]:
+        if not isinstance(raw, list):
+            raise TypeError(
+                "The plugins of {} should be a list of dictionaries".format(self.name)
+            )
+        parsed: List[Dict[str, Any]] = []
+        for i, p in enumerate(raw):
+            if not isinstance(p, dict):
+                raise TypeError(
+                    "plugins[{}] of {} should be a dictionary".format(i, self.name)
+                )
+            if "path" not in p:
+                raise KeyError(
+                    "plugins[{}] of {} is missing the required `path` key".format(
+                        i, self.name
+                    )
+                )
+            path = os.path.expandvars(p["path"])
+            cls = p.get("class")
+            args = p.get("args", [])
+            if not isinstance(args, list):
+                raise TypeError(
+                    "plugins[{}].args of {} should be a list of strings".format(
+                        i, self.name
+                    )
+                )
+            parsed.append({"path": path, "class": cls, "args": [str(a) for a in args]})
+        return parsed
+
+    def __str__(self) -> str:
+        return "{} Renaissance {}".format(super().__str__(), self.path)
+
+    def get_benchmark(self, bm_spec: Union[str, Dict[str, Any]]) -> "JavaBenchmark":
+        assert type(bm_spec) is str
+        bm_name = bm_spec
+        program_args = ["-jar", str(self.path)]
+        if self.timing_iteration:
+            program_args += ["-r", str(self.timing_iteration)]
+        for p in self.plugins:
+            spec = (
+                p["path"]
+                if p["class"] is None
+                else "{}!{}".format(p["path"], p["class"])
+            )
+            program_args += ["--plugin", spec]
+            for a in p["args"]:
+                program_args += ["--with-arg", a]
+        program_args.append(bm_name)
+        return JavaBenchmark(
+            jvm_args=[],
+            program_args=program_args,
+            cp=[],
+            suite_name=self.name,
+            name=bm_name,
+            timeout=self.timeout,
+        )
+
+    def get_minheap(self, bm: Benchmark) -> int:
+        assert isinstance(bm, JavaBenchmark)
+        name = bm.name
+        if not self.minheap:
+            logging.warning("No minheap_value of {} is selected".format(self))
+            return DEFAULT_MINHEAP
+        minheap = self.minheap_values[self.minheap]
+        if name not in minheap:
+            logging.warning("Minheap for {} of {} not set".format(name, self))
+            return DEFAULT_MINHEAP
+        return minheap[name]
+
+    def is_passed(self, _output: bytes) -> bool:
+        # FIXME Renaissance has no single sentinel string; rely on exit code
+        # via the runtime. The harness exits non-zero when a benchmark fails
+        # validation or throws.
+        return True
 
 
 @register(BenchmarkSuite)
