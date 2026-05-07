@@ -3,7 +3,7 @@ requires = ["uv_build>=0.11.3,<0.12.0"]
 build-backend = "uv_build"
 
 [project]
-name = "running-ng"
+name = "running-ng2"
 version = "0.4.7"
 description = "Running: Next Generation"
 readme = "README.md"
@@ -31,7 +31,7 @@ zulip = [
 ]
 
 [project.scripts]
-running = "running.__main__:main"
+running2 = "running.__main__:main"
 
 [dependency-groups]
 dev = [
