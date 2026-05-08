@@ -2,11 +2,18 @@
 `running-ng` is a collection of scripts that help people run workloads in a methodologically sound settings.
 
 ## Installation
-`pip3 install running-ng`
+```bash
+pip3 install running-ng
+# or, to install as an isolated tool:
+uv tool install running-ng
+pipx install running-ng
+```
 
 There are two [extras](https://peps.python.org/pep-0508/#extras) available.
 - `zulip`: dependencies for the `Zulip` `runbms` plugin, useful for users.
 - `tests`: dependencies for running tests, useful for package developers.
+
+To install with the `zulip` extra, append `[zulip]` to the package name, e.g. `uv tool install 'running-ng[zulip]'` or `pipx install 'running-ng[zulip]'`.
 
 ## Development setup
 This project uses [`uv`](https://docs.astral.sh/uv/). Install `uv` first, then:
