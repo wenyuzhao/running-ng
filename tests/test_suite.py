@@ -76,7 +76,7 @@ def test_dacapo_timing_iteration():
     assert "-converge" in fop_converge.to_string(DummyRuntime("java"))
 
 
-def test_renaissance_plugins():
+def test_renaissance():
     c = Configuration(
         {
             "suites": {
@@ -84,16 +84,6 @@ def test_renaissance_plugins():
                     "type": "Renaissance",
                     "path": "/usr/share/benchmarks/renaissance/renaissance.jar",
                     "timing_iteration": 5,
-                    "plugins": [
-                        {
-                            "path": "/path/to/probes.jar",
-                            "class": "probe.RenaissancePlugin",
-                        },
-                        {
-                            "path": "/path/to/another.jar",
-                            "args": ["--foo", "bar"],
-                        },
-                    ],
                 },
             },
             "benchmarks": {
@@ -104,34 +94,9 @@ def test_renaissance_plugins():
     c.resolve_class()
     bm = c.get("benchmarks")["renaissance"][0]
     rendered = bm.to_string(DummyRuntime("java"))
-    # The first plugin's "path!class" is wrapped in shell quotes by `to_string`
-    # because of the "!"; the second has no special chars and is passed bare.
-    assert "/path/to/probes.jar!probe.RenaissancePlugin" in rendered
-    assert "--plugin /path/to/another.jar" in rendered
-    assert "--with-arg --foo" in rendered
-    assert "--with-arg bar" in rendered
-    # plugin block must precede the benchmark name argument
-    assert rendered.index("--plugin") < rendered.rindex("scrabble")
-
-
-def test_renaissance_plugin_path_envvar():
-    c = Configuration(
-        {
-            "suites": {
-                "renaissance": {
-                    "type": "Renaissance",
-                    "path": "/usr/share/benchmarks/renaissance/renaissance.jar",
-                    "timing_iteration": 1,
-                    "plugins": [{"path": "$HOME/probes.jar"}],
-                },
-            },
-            "benchmarks": {"renaissance": ["scrabble"]},
-        }
-    )
-    c.resolve_class()
-    bm = c.get("benchmarks")["renaissance"][0]
-    rendered = bm.to_string(DummyRuntime("java"))
-    assert "$HOME" not in rendered
+    assert "-jar /usr/share/benchmarks/renaissance/renaissance.jar" in rendered
+    assert "-r 5" in rendered
+    assert "scrabble" in rendered
 
 
 def test_dacapo_path_ennvvar():

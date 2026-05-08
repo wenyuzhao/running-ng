@@ -319,37 +319,6 @@ class Renaissance(JavaBenchmarkSuite):
                 self.timing_iteration = timing_iteration
         self.timeout: Optional[int]
         self.timeout = kwargs.get("timeout")
-        self.plugins: List[Dict[str, Any]]
-        self.plugins = self._parse_plugins(kwargs.get("plugins", []))
-
-    def _parse_plugins(self, raw: Any) -> List[Dict[str, Any]]:
-        if not isinstance(raw, list):
-            raise TypeError(
-                "The plugins of {} should be a list of dictionaries".format(self.name)
-            )
-        parsed: List[Dict[str, Any]] = []
-        for i, p in enumerate(raw):
-            if not isinstance(p, dict):
-                raise TypeError(
-                    "plugins[{}] of {} should be a dictionary".format(i, self.name)
-                )
-            if "path" not in p:
-                raise KeyError(
-                    "plugins[{}] of {} is missing the required `path` key".format(
-                        i, self.name
-                    )
-                )
-            path = os.path.expandvars(p["path"])
-            cls = p.get("class")
-            args = p.get("args", [])
-            if not isinstance(args, list):
-                raise TypeError(
-                    "plugins[{}].args of {} should be a list of strings".format(
-                        i, self.name
-                    )
-                )
-            parsed.append({"path": path, "class": cls, "args": [str(a) for a in args]})
-        return parsed
 
     def __str__(self) -> str:
         return "{} Renaissance {}".format(super().__str__(), self.path)
@@ -360,15 +329,6 @@ class Renaissance(JavaBenchmarkSuite):
         program_args = ["-jar", str(self.path)]
         if self.timing_iteration:
             program_args += ["-r", str(self.timing_iteration)]
-        for p in self.plugins:
-            spec = (
-                p["path"]
-                if p["class"] is None
-                else "{}!{}".format(p["path"], p["class"])
-            )
-            program_args += ["--plugin", spec]
-            for a in p["args"]:
-                program_args += ["--with-arg", a]
         program_args.append(bm_name)
         return JavaBenchmark(
             jvm_args=[],
