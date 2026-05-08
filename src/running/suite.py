@@ -320,35 +320,6 @@ class Renaissance(JavaBenchmarkSuite):
         self.timeout: Optional[int]
         self.timeout = kwargs.get("timeout")
 
-    def _parse_plugins(self, raw: Any) -> List[Dict[str, Any]]:
-        if not isinstance(raw, list):
-            raise TypeError(
-                "The plugins of {} should be a list of dictionaries".format(self.name)
-            )
-        parsed: List[Dict[str, Any]] = []
-        for i, p in enumerate(raw):
-            if not isinstance(p, dict):
-                raise TypeError(
-                    "plugins[{}] of {} should be a dictionary".format(i, self.name)
-                )
-            if "path" not in p:
-                raise KeyError(
-                    "plugins[{}] of {} is missing the required `path` key".format(
-                        i, self.name
-                    )
-                )
-            path = os.path.expandvars(p["path"])
-            cls = p.get("class")
-            args = p.get("args", [])
-            if not isinstance(args, list):
-                raise TypeError(
-                    "plugins[{}].args of {} should be a list of strings".format(
-                        i, self.name
-                    )
-                )
-            parsed.append({"path": path, "class": cls, "args": [str(a) for a in args]})
-        return parsed
-
     def __str__(self) -> str:
         return "{} Renaissance {}".format(super().__str__(), self.path)
 
