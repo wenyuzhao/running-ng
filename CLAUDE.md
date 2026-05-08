@@ -8,28 +8,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Common commands
 
-Setup (the README still mentions virtualenv, but `uv` is also configured via `uv.lock`):
+Setup (this project uses `uv` — see [pyproject.toml](pyproject.toml) and [uv.lock](uv.lock); the `dev` dependency group covers `pytest`/`mypy`/`black`):
 
 ```bash
-pip install -e .[zulip,tests]
+uv sync --group dev --extra zulip
 ```
 
 Tests, type-check, formatter — these are exactly what CI runs ([.github/workflows/python.yml](.github/workflows/python.yml)):
 
 ```bash
 # tests — CI runs each file separately because they share global state
-for f in tests/test_*.py; do pytest "$f"; done
+for f in tests/test_*.py; do uv run pytest "$f"; done
 # single test file / single test
-pytest tests/test_runbms.py
-pytest tests/test_runbms.py::test_spread
+uv run pytest tests/test_runbms.py
+uv run pytest tests/test_runbms.py::test_spread
 
-mypy --check-untyped-defs src/running
-black --check src tests
+uv run mypy --check-untyped-defs src/running
+uv run black --check src tests
 ```
 
-Run the CLI from a checkout: `python -m running <subcommand>` or, after `pip install -e`, `running <subcommand>`. Subcommands are `runbms`, `minheap`, `fillin`, `preproc` (see [src/running/__main__.py](src/running/__main__.py)).
+Run the CLI from a checkout: `uv run running <subcommand>` (or `uv run python -m running <subcommand>`). Subcommands are `runbms`, `minheap`, `fillin`, `preproc` (see [src/running/__main__.py](src/running/__main__.py)).
 
-Build a wheel: `python -m build`. Version is read from [src/running/__version__.py](src/running/__version__.py) via `setuptools.dynamic`.
+Build a wheel: `uv build`. The build backend is `uv_build` and the version is set directly in [pyproject.toml](pyproject.toml).
 
 ## Architecture
 
