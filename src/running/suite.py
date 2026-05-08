@@ -319,8 +319,6 @@ class Renaissance(JavaBenchmarkSuite):
                 self.timing_iteration = timing_iteration
         self.timeout: Optional[int]
         self.timeout = kwargs.get("timeout")
-        self.plugins: List[Dict[str, Any]]
-        self.plugins = self._parse_plugins(kwargs.get("plugins", []))
 
     def _parse_plugins(self, raw: Any) -> List[Dict[str, Any]]:
         if not isinstance(raw, list):
@@ -360,15 +358,6 @@ class Renaissance(JavaBenchmarkSuite):
         program_args = ["-jar", str(self.path)]
         if self.timing_iteration:
             program_args += ["-r", str(self.timing_iteration)]
-        for p in self.plugins:
-            spec = (
-                p["path"]
-                if p["class"] is None
-                else "{}!{}".format(p["path"], p["class"])
-            )
-            program_args += ["--plugin", spec]
-            for a in p["args"]:
-                program_args += ["--with-arg", a]
         program_args.append(bm_name)
         return JavaBenchmark(
             jvm_args=[],
