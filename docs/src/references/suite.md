@@ -133,27 +133,6 @@ If the minheap value for a benchmark is not specified, a default of `4096` is us
 `timeout`: timeout for one invocation of a benchmark in seconds.
 The default value is `null`.
 
-`plugins`: a list of [Renaissance plugins](https://renaissance.dev/docs) to load on the harness command line.
-The default value is an empty list.
-Each list entry is a dictionary with the following keys:
-- `path` (required): path to the plugin `jar`. To pass multiple jars, join them with `:`. Environment variables are expanded.
-- `class` (optional): the fully-qualified class implementing the plugin. When set, it is appended to `path` with `!` as expected by the harness.
-- `args` (optional): a list of strings; each value is appended to the harness command line as a separate `--with-arg <value>` after the corresponding `--plugin`.
-
-The plugins are emitted on the command line in the order listed.
-Per the Renaissance docs, plugins specified earlier wrap plugins specified later for paired events, so order matters.
-
-An example looks like this.
-```yaml
-plugins:
-  - path: /path/to/probes.jar
-    class: probe.RenaissancePlugin
-  - path: /path/to/another-plugin.jar
-    args:
-      - "--foo"
-      - "bar"
-```
-
 ### Benchmark Specification
 Only strings are allowed, which should correspond to a benchmark name or group recognized by the Renaissance harness.
 
