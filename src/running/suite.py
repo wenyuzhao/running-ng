@@ -440,7 +440,7 @@ class SPECjbb2015(JavaBenchmarkSuite):
         )
 
     def get_minheap(self, _bm: Benchmark) -> int:
-        return 2048  # SPEC recommends running with minimum 2GB of heap
+        return 1620  # SPEC recommends running with minimum 2GB of heap
 
     def is_passed(self, output: bytes) -> bool:
         # FIXME
